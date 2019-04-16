@@ -21,12 +21,7 @@ def data_split(file_path, save_path):
     earthquake_id = 1
     start_index = 0
 
-    # last_time_to_failure = train_df.iloc[0]['time_to_failure']
-
     print("splitting")
-
-    # acoustic_data = pd.Series()
-    # time_to_failure_series = pd.Series()
 
     for segment_num in tqdm(range(segments)):
         begin = segment_num * chunk_size
@@ -53,8 +48,6 @@ def data_split(file_path, save_path):
 
             earthquake_id = earthquake_id + 1
             start_index = current_index + 1
-            # last_time_to_failure = time_to_failure[-1]
-            # break
 
 
 def feature_generate(segment_signal):
