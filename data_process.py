@@ -1,6 +1,8 @@
 import numpy as np  # linear algebra
 import pandas as pd  # data processing, CSV file I/O (e.g. pd.read_csv)
 from tqdm import tqdm
+from matplotlib import pyplot as plt
+import os
 
 
 def data_split(file_path, save_path):
@@ -50,11 +52,39 @@ def data_split(file_path, save_path):
             start_index = current_index + 1
 
 
-def feature_generate(segment_signal):
-    pass
+def load_origin_data(file_path):
+    signal_data = pd.read_csv(filepath_or_buffer=file_path,
+                              dtype={'acoustic_data': np.int16, 'time_to_failure': np.float32})
+    return signal_data
+
+
+def plot_origin_data(signal_data, step, name, output_path):
+    train_ad = signal_data['acoustic_data'][::step]
+    train_ttf = signal_data['time_to_failure'][::step]
+    title = f"{name} Acoustic data and time to failure: 1% sampled data"
+    fig, ax1 = plt.subplots(figsize=(12, 8))
+    plt.title(title)
+    plt.plot(np.arange(train_ad.size), train_ad, color='r')
+    ax1.set_ylabel('acoustic data', color='r')
+    plt.legend(['acoustic data'], loc=(0.01, 0.95))
+    ax2 = ax1.twinx()
+    plt.plot(np.arange(train_ttf.size), train_ttf, color='b')
+    ax2.set_ylabel('time to failure', color='b')
+    plt.legend(['time to failure'], loc=(0.01, 0.9))
+    plt.grid(True)
+
+    # plt.savefig(output_path + name)
+    plt.show()
 
 
 if __name__ == '__main__':
-    file_path = '../input.csv/train.csv'
-    save_path = '../output/'
-    data_split(file_path, save_path)
+    # file_path = '../input.csv/train.csv'
+    # save_path = '../output/'
+    # data_split(file_path, save_path)
+    path = "../earthquakes/"
+    files = os.listdir(path)  # 得到文件夹下的所有文件名称
+    s = []
+    for file in tqdm(files):  # 遍历文件夹
+        if not os.path.isdir(file) and file.split(".")[1] == "csv":  # 判断是否是文件夹，不是文件夹才打开
+            signal_data = load_origin_data(path + file)
+            plot_origin_data(signal_data, 150000, file.split(".")[0], path)
