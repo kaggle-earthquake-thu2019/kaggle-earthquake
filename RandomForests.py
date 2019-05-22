@@ -28,10 +28,10 @@ def generate_features(seg_id, segment, X):
     X.loc[seg_id, 'max'] = xc.max()
     X.loc[seg_id, 'min'] = xc.min()
 
-    # X.loc[seg_id, 'mad'] = xc.mad()
-    # X.loc[seg_id, 'kurt'] = xc.kurtosis()
-    # X.loc[seg_id, 'skew'] = xc.skew()
-    # X.loc[seg_id, 'med'] = xc.median()
+    X.loc[seg_id, 'mad'] = xc.mad()
+    X.loc[seg_id, 'kurt'] = xc.kurtosis()
+    X.loc[seg_id, 'skew'] = xc.skew()
+    X.loc[seg_id, 'med'] = xc.median()
 
 
 def data_process(file_path):
@@ -66,22 +66,23 @@ def data_process(file_path):
 def train(train_data, train_label, test_data, test_label):
     X, y = np.array(train_data.values), np.array(train_label.values).reshape(-1, )
     # print(X, y)
-    reg = RandomForestRegressor(criterion='mae')
+    reg = RandomForestRegressor(max_depth=2,
+                                criterion='mae')
     print(reg)
     reg.fit(X, y)
     print(reg.feature_importances_)
     pred = []
     for i in range(len(test_data.values)):
         output = reg.predict([test_data.values[i]])
-        print(output)
+        print(output, test_label.values[i])
         pred.append(output)
     print(mean_absolute_error(test_label.values, pred))
 
 
 if __name__ == '__main__':
     file_path = '../earthquakes/earthquake_3.csv'
-    test_file = '../earthquakes/earthquake_1.csv'
+    test_file = '../earthquakes/earthquake_2.csv'
     full_data = '../input/train.csv'
-    train_data, train_label = data_process(full_data)
+    train_data, train_label = data_process(file_path)
     test_data, test_label = data_process(test_file)
     train(train_data, train_label, test_data, test_label)
