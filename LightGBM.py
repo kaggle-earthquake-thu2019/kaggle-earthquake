@@ -4,13 +4,12 @@ import warnings
 from scipy import stats
 from matplotlib import pyplot as plt
 from tqdm import tqdm
-from sklearn.ensemble.forest import RandomForestRegressor
-from sklearn.datasets import make_regression
-from sklearn.metrics import mean_absolute_error
 from sklearn.preprocessing import StandardScaler
-from sklearn.svm import SVR
-
+from sklearn.metrics import mean_absolute_error
+import lightgbm as lgb
+import os
 warnings.filterwarnings("ignore")
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
 
 def load_data(file_path):
@@ -65,9 +64,9 @@ def data_process(file_path):
 
 def train(train_data, train_label, test_data, test_label):
     X, y = np.array(train_data.values), np.array(train_label.values).reshape(-1, )
+    X_test, y_test = np.array(train_data.values), np.array(train_label.values).reshape(-1, )
     # print(X, y)
-    reg = RandomForestRegressor(max_depth=2,
-                                criterion='mae')
+    reg = lgb.LGBMRegressor()
     print(reg)
     reg.fit(X, y)
     print(reg.feature_importances_)
@@ -76,7 +75,7 @@ def train(train_data, train_label, test_data, test_label):
         output = reg.predict([test_data.values[i]])
         print(output, test_label.values[i])
         pred.append(output)
-    print(mean_absolute_error(test_label.values, pred))
+    print("mean absolute error: ", mean_absolute_error(test_label.values, pred))
 
 
 if __name__ == '__main__':

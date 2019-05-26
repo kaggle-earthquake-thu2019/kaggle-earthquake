@@ -6,7 +6,6 @@ from matplotlib import pyplot as plt
 from tqdm import tqdm
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_absolute_error
-# import lightgbm as lgb
 from catboost import CatBoostRegressor
 
 warnings.filterwarnings("ignore")
@@ -55,9 +54,9 @@ def data_process(file_path):
         train_Y.loc[seg_id, 'time_to_failure'] = time_to_failure[-1]
 
     print("finish loading")
-    scaler = StandardScaler()
-    scaler.fit(train_X)
-    train_X = pd.DataFrame(scaler.transform(train_X), columns=train_X.columns)
+    # scaler = StandardScaler()
+    # scaler.fit(train_X)
+    # train_X = pd.DataFrame(scaler.transform(train_X), columns=train_X.columns)
 
     return train_X, train_Y
 
@@ -66,9 +65,9 @@ def train(train_data, train_label, test_data, test_label):
     X, y = np.array(train_data.values), np.array(train_label.values).reshape(-1, )
     X_test, y_test = np.array(train_data.values), np.array(train_label.values).reshape(-1, )
     # print(X, y)
-    reg = CatBoostRegressor(iterations=100,
+    reg = CatBoostRegressor(iterations=5,
                             depth=2,
-                            learning_rate=0.1,
+                            learning_rate=1,
                             loss_function='MAE')
     print(reg)
     reg.fit(X, y)
@@ -83,7 +82,7 @@ def train(train_data, train_label, test_data, test_label):
 
 if __name__ == '__main__':
     file_path = '../earthquakes/earthquake_3.csv'
-    test_file = '../earthquakes/earthquake_2.csv'
+    test_file = '../earthquakes/earthquake_1.csv'
     full_data = '../input/train.csv'
     train_data, train_label = data_process(file_path)
     test_data, test_label = data_process(test_file)
