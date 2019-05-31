@@ -105,3 +105,9 @@ venv.bak/
 
 # pycharm
 .idea/
+
+# catboost
+catboost_info/
+
+# tmp
+*.tmp
