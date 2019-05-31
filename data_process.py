@@ -78,9 +78,6 @@ def plot_origin_data(signal_data, step, name, output_path):
 
 
 if __name__ == '__main__':
-    # file_path = '../input.csv/train.csv'
-    # save_path = '../output/'
-    # data_split(file_path, save_path)
     path = "../earthquakes/"
     files = os.listdir(path)  # 得到文件夹下的所有文件名称
     s = []
