@@ -4,6 +4,8 @@ from tqdm import tqdm
 from matplotlib import pyplot as plt
 import os
 
+split_done = True
+
 
 def data_split(file_path, save_path):
     """
@@ -78,10 +80,13 @@ def plot_origin_data(signal_data, step, name, output_path):
 
 
 if __name__ == '__main__':
-    path = "../earthquakes/"
-    files = os.listdir(path)  # 得到文件夹下的所有文件名称
+    source_file = '../input/train.csv'
+    save_dir = "../earthquakes/"
+    if not split_done:
+        data_split(source_file, save_dir)
+    files = os.listdir(save_dir)  # 得到文件夹下的所有文件名称
     s = []
     for file in tqdm(files):  # 遍历文件夹
         if not os.path.isdir(file) and file.split(".")[1] == "csv":  # 判断是否是文件夹，不是文件夹才打开
-            signal_data = load_origin_data(path + file)
-            plot_origin_data(signal_data, 150000, file.split(".")[0], path)
+            signal_data = load_origin_data(save_dir + file)
+            plot_origin_data(signal_data, 150000, file.split(".")[0], save_dir)
