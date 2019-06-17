@@ -13,7 +13,6 @@ from sklearn.model_selection import LeaveOneOut
 from sklearn.model_selection import KFold
 import time
 
-from catboost import CatBoostRegressor
 import lightgbm as lgb
 
 
@@ -39,8 +38,10 @@ def load_submission(submission_path, submission_data):
     return submission, np.array(submission_x.values)
 
 
-def train_lgb(x_train, y_train, submission_x, features):
+def train_lgb(x_train, y_train, submission_x, features, test_x):
     predict_submission = np.zeros(len(submission_x))
+    predict_test = np.zeros(len(test_x))
+
     feature_importance_df = pd.DataFrame()
     params = {'num_leaves': 63,
               'min_data_in_leaf': 10,
@@ -69,18 +70,20 @@ def train_lgb(x_train, y_train, submission_x, features):
         reg.fit(train_x, train_y,
                 eval_set=[(train_x, train_y), (valid_x, valid_y)],
                 eval_metric='mae',
-                early_stopping_rounds=1500)
+                early_stopping_rounds=1000)
 
-        predict_submission += reg.predict(submission_x) / kfold.n_splits
+        predict_submission += reg.predict(submission_x,  num_iteration=reg.best_iteration_) / kfold.n_splits
         predict_valid = reg.predict(valid_x, num_iteration=reg.best_iteration_)
         mae += mean_absolute_error(predict_valid, valid_y) / kfold.n_splits
+        predict_test += reg.predict(test_x,  num_iteration=reg.best_iteration_) / kfold.n_splits
         # count features importance
         fold_importance_df = pd.DataFrame()
         fold_importance_df["Feature"] = features
         fold_importance_df["importance"] = reg.feature_importances_[:len(features)]
         fold_importance_df["fold"] = fold_ + 1
         feature_importance_df = pd.concat([feature_importance_df, fold_importance_df], axis=0)
-    return mae, predict_submission, feature_importance_df
+    # plot test
+    return mae, predict_submission, feature_importance_df, predict_test
 
 
 def features_importance(feature_importance_df, timestamp):
@@ -97,17 +100,28 @@ def features_importance(feature_importance_df, timestamp):
     plt.savefig('../output/' + timestamp + '_lgbm_importances.png')
 
 
+def plot_test(test_y, predict_test, timestamp):
+    fig, ax1 = plt.subplots(figsize=(12, 8))
+    plt.plot(np.arange(test_y.size), test_y, color='b')
+    plt.plot(np.arange(predict_test.size), predict_test, color='r')
+    ax1.set_ylabel('time to failure', color='b')
+    plt.legend(['time to failure'], loc=(0.01, 0.9))
+    plt.grid(True)
+    plt.savefig('../output/' + timestamp + '_compare.png')
+    plt.show()
+
+
 if __name__ == '__main__':
     file_dir = '../train/'
     output_dir = '../output/'
     train_data, train_label, features = load_data(file_dir, "train")
-
+    test_data, test_label, feature_test = load_data(file_dir, "3")
     # submission
     submission_df, submission_x = load_submission(file_dir + "sample_submission.csv", file_dir + "submission.hdf")
 
     # train and predict
     lgb_start = time.time()
-    lgb_mae, submission_ttf, feature_df = train_lgb(train_data, train_label, submission_x, features)
+    lgb_mae, submission_ttf, feature_df, predict_y = train_lgb(train_data, train_label, submission_x, features, test_data)
     lgb_end = time.time()
 
     # save submission
@@ -123,3 +137,4 @@ if __name__ == '__main__':
 
     # show feature importance
     features_importance(feature_df, timestamp)
+    plot_test(test_label, predict_y, timestamp)
